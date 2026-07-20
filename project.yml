@@ -12,14 +12,16 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: MaimaiFisheyeGimbalApp.swift
-      - path: ContentView.swift
-      - path: Models
-      - path: Services
-      - path: Shaders
-      - path: Views
-      - path: LaunchScreen.storyboard
-      - path: Info.plist
+      - path: .
+        excludes:
+          - .git
+          - .gitignore
+          - codemagic.yaml
+          - exportOptions.plist
+          - README.md
+          - project.yml
+          - ".xcodeproj"
+          - ".build"
     settings:
       base:
         INFOPLIST_FILE: Info.plist

@@ -5,7 +5,7 @@
     <key>CFBundleName</key>
     <string>MaimaiFisheyeGimbal</string>
     <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <string>com.maimai.fisheyegimbal</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
@@ -13,7 +13,7 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+    <string>MaimaiFisheyeGimbal</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UILaunchStoryboardName</key>

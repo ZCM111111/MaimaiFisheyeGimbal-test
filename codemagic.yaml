@@ -26,6 +26,10 @@ workflows:
         script: |
           echo "===== 生成项目 ====="
           xcodegen generate
+          echo "--- project.yml ---"
+          cat project.yml
+          echo "--- generated pbxproj (build phases) ---"
+          grep -A5 "shellScript" MaimaiFisheyeGimbal.xcodeproj/project.pbxproj | head -30
 
       - name: Build
         script: |
@@ -38,17 +42,32 @@ workflows:
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet 2>&1 | grep -E "(error:|warning:|BUILD)" || true
+            CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "(error:|warning:|BUILD|✅|❌|Info\.plist|PhaseScriptExecution)" || true
 
       - name: Package unsigned IPA
         script: |
+          echo "===== 查找 .app ====="
+          find ~/Library/Developer/Xcode/DerivedData -name "MaimaiFisheyeGimbal.app" -path "*/Debug-iphoneos/*" 2>/dev/null | while read app; do
+            echo "Found: $app"
+            echo "--- contents ---"
+            ls -la "$app/"
+          done
+
           APP=$(find ~/Library/Developer/Xcode/DerivedData -name "MaimaiFisheyeGimbal.app" -path "*/Debug-iphoneos/*" 2>/dev/null | head -1)
 
           if [ -z "$APP" ]; then
             echo "❌ 找不到 .app"
             exit 1
           fi
+
+          if [ ! -f "$APP/Info.plist" ]; then
+            echo "❌ .app 中缺少 Info.plist!"
+            echo "Contents of $APP:"
+            ls -laR "$APP/" | head -50
+            exit 1
+          fi
+
+          echo "✅ Info.plist 存在: $(ls -la "$APP/Info.plist")"
 
           mkdir -p Payload
           cp -R "$APP" Payload/
@@ -75,14 +94,11 @@ workflows:
     scripts:
       - name: Install tools
         script: |
-          echo "===== 安装工具 ====="
           brew install xcodegen
           xcodebuild -downloadComponent MetalToolchain 2>&1 | tail -1
       - name: Generate + Build
         script: |
-          echo "===== 生成项目 ====="
           xcodegen generate
-          echo "===== 编译检查 ====="
           xcodebuild build \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
@@ -91,7 +107,5 @@ workflows:
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            -quiet 2>&1 | grep -E "(error:|warning:|BUILD)" || true
-          echo ""
+            CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "(error:|warning:|BUILD|✅|❌)" || true
           echo "✅ BUILD PASSED"

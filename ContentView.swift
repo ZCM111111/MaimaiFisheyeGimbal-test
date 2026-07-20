@@ -165,6 +165,7 @@ struct MetalPreviewView: UIViewRepresentable {
         mtk.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         mtk.delegate = context.coordinator
         mtk.preferredFramesPerSecond = 60
+        context.coordinator.setup(mtkView: mtk)
         return mtk
     }
 
@@ -183,16 +184,27 @@ struct MetalPreviewView: UIViewRepresentable {
         var rollStrength: Double  = 1.0
         var pitchStrength: Double = 1.0
         var yawStrength: Double   = 1.0
+        private weak var mtkView: MTKView?
 
         init(parent: MetalPreviewView) {
             self.parent = parent
             super.init()
+        }
+
+        func setup(mtkView: MTKView) {
+            self.mtkView = mtkView
+            // 相机每出一帧，立即用 GPU 渲染到 MTKView 的 drawable
             parent.camera.onFrame = { [weak self] pixelBuffer in
                 guard let self,
                       let pipeline = self.parent.pipeline,
-                      let view = self.parent.pipeline?.device else { return }
-                // render is driven by camera frame callback, not MTKView draw loop
-                // the MTKView's current drawable is used in the callback
+                      let drawable = self.mtkView?.currentDrawable?.texture else { return }
+
+                let snap = self.parent.motion.snapshot()
+                pipeline.roll  = snap.roll  * self.rollStrength
+                pipeline.pitch = snap.pitch * self.pitchStrength
+                pipeline.yaw   = snap.yaw   * self.yawStrength
+
+                pipeline.render(pixelBuffer: pixelBuffer, drawable: drawable)
             }
         }
 
@@ -201,12 +213,7 @@ struct MetalPreviewView: UIViewRepresentable {
         }
 
         func draw(in view: MTKView) {
-            guard let pipeline = parent.pipeline,
-                  let drawable = view.currentDrawable?.texture else { return }
-
-            // Camera frames drive the pipeline, not the MTKView draw loop
-            // If we have a pending frame, process it; otherwise draw black (clear)
-            // On real device, camera.onFrame callback should trigger view.setNeedsDisplay()
+            // 渲染由相机帧回调驱动，MTKView draw loop 仅清屏
         }
     }
 }

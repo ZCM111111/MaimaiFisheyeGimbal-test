@@ -16,14 +16,29 @@ workflows:
         - pattern: main
           include: true
     scripts:
-      - name: Install XcodeGen
-        script: brew install xcodegen
-      - name: Install Metal Toolchain
-        script: xcodebuild -downloadComponent MetalToolchain
-      - name: Generate Xcode project
-        script: xcodegen generate
-      - name: Build (no signing)
+      - name: Install tools
         script: |
+          echo "========================================="
+          echo " 安装 XcodeGen + Metal Toolchain"
+          echo "========================================="
+          brew install xcodegen
+          xcodebuild -downloadComponent MetalToolchain 2>&1 | tail -3
+
+      - name: Generate project
+        script: |
+          echo ""
+          echo "========================================="
+          echo " 生成 Xcode 项目"
+          echo "========================================="
+          xcodegen generate
+          echo "✅ Xcode 项目已生成"
+
+      - name: Build
+        script: |
+          echo ""
+          echo "========================================="
+          echo " 编译 (Debug, 无签名, 仅验证)"
+          echo "========================================="
           xcodebuild build \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
@@ -32,7 +47,26 @@ workflows:
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet 2>&1 | grep -E "(error:|warning:|BUILD|✅|===)" || true
+
+      - name: Show output
+        script: |
+          APP=$(find ~/Library/Developer/Xcode/DerivedData -name "MaimaiFisheyeGimbal.app" -path "*/Debug-iphoneos/*" 2>/dev/null | head -1)
+          echo ""
+          echo "========================================="
+          echo " 产物路径"
+          echo "========================================="
+          if [ -n "$APP" ]; then
+            echo "✅ $APP"
+            echo "大小: $(du -sh "$APP" | cut -f1)"
+          else
+            echo "⚠️ .app 未找到 (无签名模式不产生可安装包)"
+            echo "搜索路径: ~/Library/Developer/Xcode/DerivedData/.../Debug-iphoneos/"
+          fi
+
+    artifacts:
+      - ~/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
 
   pr-check:
     name: PR Check
@@ -42,14 +76,21 @@ workflows:
       events:
         - pull_request
     scripts:
-      - name: Install XcodeGen
-        script: brew install xcodegen
-      - name: Install Metal Toolchain
-        script: xcodebuild -downloadComponent MetalToolchain
-      - name: Generate Xcode project
-        script: xcodegen generate
-      - name: Build check (no signing)
+      - name: Install tools
         script: |
+          echo "===== 安装工具 ====="
+          brew install xcodegen
+          xcodebuild -downloadComponent MetalToolchain 2>&1 | tail -1
+
+      - name: Generate project
+        script: |
+          echo "===== 生成项目 ====="
+          xcodegen generate
+          echo "✅ done"
+
+      - name: Build check
+        script: |
+          echo "===== 编译检查 ====="
           xcodebuild build \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
@@ -58,4 +99,7 @@ workflows:
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet 2>&1 | grep -E "(error:|warning:|BUILD|✅)" || true
+          echo ""
+          echo "✅ BUILD PASSED"

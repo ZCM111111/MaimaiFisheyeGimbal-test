@@ -3,10 +3,8 @@ options:
   bundleIdPrefix: com.maimai
   deploymentTarget:
     iOS: "17.0"
-  xcodeVersion: "15.0"
 settings:
   SWIFT_VERSION: "5.9"
-  METAL_ENABLE_DEBUG_INFO: "YES"
 targets:
   MaimaiFisheyeGimbal:
     type: application
@@ -26,24 +24,3 @@ targets:
       base:
         INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.maimai.fisheyegimbal
-        DEVELOPMENT_TEAM: ""
-    postCompileScripts:
-      - name: "Force Copy Info.plist"
-        script: |
-          SRC="${SRCROOT}/Info.plist"
-          DST="${CODESIGNING_FOLDER_PATH}/Info.plist"
-          echo "SRC=${SRC}"
-          echo "DST=${DST}"
-          echo "CODESIGNING_FOLDER_PATH=${CODESIGNING_FOLDER_PATH}"
-          echo "TARGET_BUILD_DIR=${TARGET_BUILD_DIR}"
-          echo "CONTENTS_FOLDER_PATH=${CONTENTS_FOLDER_PATH}"
-          ls -la "${CODESIGNING_FOLDER_PATH}/" 2>/dev/null || echo "(dir not found)"
-          if [ -f "$SRC" ]; then
-            mkdir -p "$(dirname "$DST")"
-            cp "$SRC" "$DST"
-            echo "✅ Info.plist copied: $(ls -la "$DST")"
-          else
-            echo "❌ SRC not found: $SRC"
-            ls -la "${SRCROOT}/" 2>/dev/null || echo "(SRCROOT listing failed)"
-            exit 1
-          fi

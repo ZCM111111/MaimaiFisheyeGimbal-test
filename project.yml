@@ -12,11 +12,16 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: .
-        type: group
+      - path: MaimaiFisheyeGimbalApp.swift
+      - path: ContentView.swift
+      - path: Models
+      - path: Services
+      - path: Shaders
+      - path: Views
+      - path: Info.plist
+        buildPhase: none
     settings:
       base:
         INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.maimai.fisheyegimbal
         DEVELOPMENT_TEAM: ""
-    dependencies: []

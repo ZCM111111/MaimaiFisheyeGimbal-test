@@ -84,9 +84,11 @@ final class CameraManager: NSObject, ObservableObject {
         session.beginConfiguration()
         session.sessionPreset = resolution.preset
 
-        // 移除旧输入
+        // 移除旧输入 + 旧输出
         let oldInputs = session.inputs.count
+        let oldOutputs = session.outputs.count
         session.inputs.forEach { session.removeInput($0) }
+        session.outputs.forEach { session.removeOutput($0) }
 
         guard let device = AVCaptureDevice.default(
             .builtInWideAngleCamera, for: .video, position: .back

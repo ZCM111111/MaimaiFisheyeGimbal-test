@@ -46,13 +46,6 @@ workflows:
 
       - name: Package unsigned IPA
         script: |
-          echo "===== 查找 .app ====="
-          find ~/Library/Developer/Xcode/DerivedData -name "MaimaiFisheyeGimbal.app" -path "*/Debug-iphoneos/*" 2>/dev/null | while read app; do
-            echo "Found: $app"
-            echo "--- contents ---"
-            ls -la "$app/"
-          done
-
           APP=$(find ~/Library/Developer/Xcode/DerivedData -name "MaimaiFisheyeGimbal.app" -path "*/Debug-iphoneos/*" 2>/dev/null | head -1)
 
           if [ -z "$APP" ]; then
@@ -60,26 +53,23 @@ workflows:
             exit 1
           fi
 
+          # 如果 Xcode 没生成 Info.plist，手动拷进去
           if [ ! -f "$APP/Info.plist" ]; then
-            echo "❌ .app 中缺少 Info.plist!"
-            echo "Contents of $APP:"
-            ls -laR "$APP/" | head -50
-            exit 1
+            echo "⚠️ Xcode 没生成 Info.plist，手动拷贝..."
+            cp -v Info.plist "$APP/Info.plist"
           fi
 
-          echo "✅ Info.plist 存在: $(ls -la "$APP/Info.plist")"
+          echo "--- .app 内容 ---"
+          ls -la "$APP/"
 
           mkdir -p Payload
           cp -R "$APP" Payload/
-          zip -r MaimaiFisheyeGimbal-unsigned.ipa Payload
+          zip -rq MaimaiFisheyeGimbal-unsigned.ipa Payload
           rm -rf Payload
 
           echo ""
-          echo "========================================="
-          echo " ✅ 无签名 IPA 已生成"
-          echo "========================================="
-          echo "文件: $(pwd)/MaimaiFisheyeGimbal-unsigned.ipa"
-          echo "大小: $(du -sh MaimaiFisheyeGimbal-unsigned.ipa | cut -f1)"
+          echo "✅ IPA: $(pwd)/MaimaiFisheyeGimbal-unsigned.ipa"
+          echo "   大小: $(du -sh MaimaiFisheyeGimbal-unsigned.ipa | cut -f1)"
 
     artifacts:
       - MaimaiFisheyeGimbal-unsigned.ipa

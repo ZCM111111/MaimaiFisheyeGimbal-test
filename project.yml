@@ -27,3 +27,16 @@ targets:
         INFOPLIST_FILE: Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.maimai.fisheyegimbal
         DEVELOPMENT_TEAM: ""
+    postBuildScripts:
+      - name: "Force Copy Info.plist"
+        script: |
+          set -e
+          SRC="${SOURCE_ROOT}/Info.plist"
+          DST="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/Info.plist"
+          if [ -f "$SRC" ]; then
+            cp "$SRC" "$DST"
+            echo "✅ Info.plist manually copied to .app bundle"
+          else
+            echo "❌ Source Info.plist not found at $SRC"
+            exit 1
+          fi

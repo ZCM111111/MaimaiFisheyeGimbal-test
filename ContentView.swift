@@ -159,7 +159,7 @@ struct MetalPreviewView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> MTKView {
         let mtk = MTKView()
-        mtk.device = pipeline?.device
+        mtk.device = pipeline?.device ?? MTLCreateSystemDefaultDevice()
         mtk.framebufferOnly = false
         mtk.colorPixelFormat = .bgra8Unorm
         mtk.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
@@ -170,6 +170,10 @@ struct MetalPreviewView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MTKView, context: Context) {
+        // pipeline 可能在 onAppear 后才就绪，补设 device
+        if uiView.device == nil, let d = pipeline?.device {
+            uiView.device = d
+        }
         context.coordinator.rollStrength  = rollStrength
         context.coordinator.pitchStrength = pitchStrength
         context.coordinator.yawStrength   = yawStrength

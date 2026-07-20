@@ -33,6 +33,10 @@
     <string>需要相机权限来拍摄鱼眼画面并进行实时稳定</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>需要麦克风权限来录制音频</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>需要相册写入权限来保存稳定后的视频</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>需要相册读取权限</string>
     <key>UIStatusBarHidden</key>
     <true/>
 </dict>

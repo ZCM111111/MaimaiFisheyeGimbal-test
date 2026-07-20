@@ -19,8 +19,6 @@ targets:
       - path: Shaders
       - path: Views
       - path: LaunchScreen.storyboard
-      - path: Info.plist
-        buildPhase: none
     settings:
       base:
         INFOPLIST_FILE: Info.plist
